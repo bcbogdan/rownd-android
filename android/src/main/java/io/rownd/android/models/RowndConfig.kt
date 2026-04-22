@@ -20,7 +20,20 @@ data class SuperTokensAppInfo(
     val appName: String,
     val apiDomain: String,
     val apiBasePath: String = "/auth"
-)
+) {
+    val normalizedApiDomain: String
+        get() = apiDomain.trimEnd('/')
+
+    val normalizedApiBasePath: String
+        get() {
+            val basePath = apiBasePath.trim().trim('/')
+            return if (basePath.isEmpty()) "" else "/$basePath"
+        }
+
+    fun migrationUrl(): String {
+        return "${normalizedApiDomain}${normalizedApiBasePath}/plugin/rownd/migrate"
+    }
+}
 
 @Serializable
 data class SuperTokensConfig(

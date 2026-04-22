@@ -1,28 +1,25 @@
 package io.rownd.android.util
 
 import android.util.Log
+import io.ktor.client.request.header
+import io.ktor.client.request.post
 import io.rownd.android.models.SuperTokensAppInfo
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.net.HttpURLConnection
-import java.net.URL
+import javax.inject.Inject
+import javax.inject.Singleton
 
-suspend fun syncUserToSuperTokens(
-    accessToken: String,
-    appInfo: SuperTokensAppInfo,
-) = withContext(Dispatchers.IO) {
-    val base = "${appInfo.apiDomain}${appInfo.apiBasePath}"
+@Singleton
+class SuperTokensSync @Inject constructor(
+    private val apiClient: KtorApiClient,
+) {
+    suspend fun syncUser(accessToken: String, appInfo: SuperTokensAppInfo) {
+        val migrationUrl = appInfo.migrationUrl()
 
-    try {
-        val conn = URL("$base/plugin/rownd/migrate").openConnection() as HttpURLConnection
-        conn.requestMethod = "POST"
-        conn.setRequestProperty("Authorization", "Bearer $accessToken")
-        val code = conn.responseCode
-        if (code !in 200..299) {
-            Log.e("Rownd.ST", "[Rownd->ST] migrate failed with status: $code")
+        try {
+            apiClient.client.post(migrationUrl) {
+                header("Authorization", "Bearer $accessToken")
+            }
+        } catch (e: Exception) {
+            Log.e("Rownd.ST", "[Rownd->ST] migrate failed (non-fatal): ${e.message}")
         }
-        conn.disconnect()
-    } catch (e: Exception) {
-        Log.e("Rownd.ST", "[Rownd->ST] migrate failed (non-fatal): ${e.message}")
     }
 }

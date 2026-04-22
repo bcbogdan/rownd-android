@@ -40,7 +40,6 @@ import io.rownd.android.util.NoRefreshTokenPresentException
 import io.rownd.android.util.RowndEvent
 import io.rownd.android.util.RowndEventType
 import io.rownd.android.util.RowndException
-import io.rownd.android.util.syncUserToSuperTokens
 import io.rownd.android.views.HubPageSelector
 import io.rownd.android.views.RowndBottomSheetActivity
 import io.rownd.android.views.RowndWebViewModel
@@ -78,6 +77,7 @@ class RowndClient(
     internal var eventEmitter = graph.rowndEventEmitter()
     internal var signInWithGoogle = graph.signInWithGoogle()
     internal var telemetry = graph.telemetry()
+    internal var superTokensSync = graph.superTokensSync()
 
     var state = stateRepo.state
     var user = userRepo
@@ -104,7 +104,7 @@ class RowndClient(
             val appInfo = config.supertokens?.appInfo ?: return@addListener
 
             CoroutineScope(Dispatchers.IO).launch {
-                syncUserToSuperTokens(accessToken = accessToken, appInfo = appInfo)
+                superTokensSync.syncUser(accessToken = accessToken, appInfo = appInfo)
             }
         }
 
